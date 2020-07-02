@@ -9,6 +9,30 @@ and extract into `gym_bomberman/envs/data` subfolder
 pip install -e .
 ```
 
+# Observation Space
+Dictionary over:
+- board: 2D Box corresponding to raw Board data
+- bombs: `0..5` - currently number of bombs placed by a player
+- perks: `0..100`, `0..100`, `0..100` - active time by perks: `bomb_blast_radius_increase`, `bomb_count_increase`, `bomb_immune`
+```python
+    observation_space = spaces.Dict({
+        'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
+        'bombs': spaces.Discrete(6),
+        'perks': spaces.MultiDiscrete([100, 100, 100])
+    })
+```
+Please check [gym_bomberman/envs/bomberman_env.py](gym_bomberman/envs/bomberman_env.py) for the details
+
+# Action Space
+- `ACT` before movement: 0-No, 1-Yes
+- movement into some direction: 0-`""`, 1-`"UP"`, 2-`"DOWN"`, 3-`"LEFT"`, 4-`"RIGHT"` 
+- `ACT` after movement: 0-No, 1-Yes
+
+```python
+    action_space = spaces.MultiDiscrete([2, 5, 2]) 
+```
+Please check [gym_bomberman/envs/bomberman_env.py](gym_bomberman/envs/bomberman_env.py) for the details
+
 # Envs
 - `gym_bomberman:Bomberman-v0` - env based on random file from data` subfolder
 - `gym_bomberman:Bomberman-all-v0` - env over all files from `data` subfolder
