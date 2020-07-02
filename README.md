@@ -45,14 +45,15 @@ git clone https://github.com/illya13/gym-bomberman.git
 cd gym-bomberman
 ```
 
-## Offline data
+### Offline data
 Download `enriched.zip` from [Google Drive](https://drive.google.com/drive/folders/1GBYH9hBdGEIpRlbTvMJnGYgd4E9KasqX)
 and extract into `gym_bomberman/envs/data` subfolder. To get more info how the data were collected please check [https://github.com/illya13/bomberman-js](https://github.com/illya13/bomberman-js)
 
 
-## Online environment integration
+### Online environment integration
 TBD 
 
+### Complete installation
 Run
 ```bash
 pip install -e .
