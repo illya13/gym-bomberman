@@ -1,5 +1,9 @@
 [OpenAI Gym](https://gym.openai.com/) Bomberman Env
 
+More info about Bomberman and Environment
+- https://dojorena.io/games/1
+- https://dojorena.io/manuals/43
+
 
 # Observation Space
 Dictionary over:
@@ -30,8 +34,8 @@ Please check [gym_bomberman/envs/bomberman_env.py](gym_bomberman/envs/bomberman_
 # Envs
 - `gym_bomberman:Bomberman-v0` - env based on random file from `data` subfolder
 - `gym_bomberman:Bomberman-all-v0` - env over all files from `data` subfolder
-- `gym_bomberman:Bomberman-15mmite2rhbuendm8atj-v0` - env based on `15mmite2rhbuendm8atj.raw` file
-There are other concrete file based ens please see [gym_bomberman/__init__.py](gym_bomberman/__init__.py)
+- `gym_bomberman:Bomberman-15mmite2rhbuendm8atj-v0` - env based on `15mmite2rhbuendm8atj.raw` file. There are other concrete file based ens please see [gym_bomberman/__init__.py](gym_bomberman/__init__.py)
+- `gym_bomberman:Bomberman-online-v0` - TBD
 
 
 # Installation
@@ -41,8 +45,13 @@ git clone https://github.com/illya13/gym-bomberman.git
 cd gym-bomberman
 ```
 
+## Offline data
 Download `enriched.zip` from [Google Drive](https://drive.google.com/drive/folders/1GBYH9hBdGEIpRlbTvMJnGYgd4E9KasqX)
-and extract into `gym_bomberman/envs/data` subfolder 
+and extract into `gym_bomberman/envs/data` subfolder. To get more info how the data were collected please check [https://github.com/illya13/bomberman-js](https://github.com/illya13/bomberman-js)
+
+
+## Online environment integration
+TBD 
 
 Run
 ```bash
