@@ -1,6 +1,7 @@
 [OpenAI Gym](https://gym.openai.com/) Bomberman Env
 
 More info about Bomberman and Environment
+- https://en.wikipedia.org/wiki/Bomberman
 - https://dojorena.io/games/1
 - https://dojorena.io/manuals/43
 
