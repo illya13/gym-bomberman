@@ -8,18 +8,11 @@ import json
 class BombermanEnv(gym.Env):
     metadata = {'render.modes': ['human']}
     data_files = {}
-    all_index = None
+    all_files_index = None
 
-    def __init__(self, filename=None, all=False):
+    def __init__(self, filename=None, all_files=False):
         self._init_data_files()
-        if all:
-            self.all_index = 0
-            filename = self._data_files_file(self.all_index)
-        elif filename is None:
-            filename = self._random_data_file()
-        else:
-            filename = self.data_files[filename]
-
+        filename = self._first_file(filename, all_files)
         self.data = open(filename)
         self.observation_space = spaces.Dict({"position": spaces.Discrete(2), "velocity": spaces.Discrete(3)})
 
@@ -61,21 +54,22 @@ class BombermanEnv(gym.Env):
 
     def _random_data_file(self):
         i = random.randint(0, len(self.data_files) - 1)
-        keys = list(self.data_files.keys())
-        return self.data_files[keys[i]]
+        return self._data_files_file(i)
 
-    def _next(self):
-        json_data = self.data.readline()
-        try:
-            return json.loads(json_data)
-        except json.decoder.JSONDecodeError:
-            return self._try_another_file()
+    def _first_file(self, filename, all_files):
+        if all_files:
+            self.all_files_index = 0
+            return self._data_files_file(self.all_files_index)
+        elif filename is None:
+            return self._random_data_file()
+        else:
+            return self.data_files[filename]
 
     def _try_another_file(self):
-        if self.all_index is not None and self.all_index + 1 < len(self.data_files):
-            self.all_index += 1
+        if self.all_files_index is not None and self.all_files_index + 1 < len(self.data_files):
+            self.all_files_index += 1
             self.data.close()
-            filename = self._data_files_file(self.all_index)
+            filename = self._data_files_file(self.all_files_index)
             self.data = open(filename)
             return self._next()
         else:
@@ -86,11 +80,18 @@ class BombermanEnv(gym.Env):
         key = keys[index]
         return self.data_files[key]
 
+    def _next(self):
+        json_data = self.data.readline()
+        try:
+            return json.loads(json_data)
+        except json.decoder.JSONDecodeError:
+            return self._try_another_file()
+
 
 class BombermanEnvAll(BombermanEnv):
 
     def __init__(self):
-        super(BombermanEnvAll, self).__init__(all=True)
+        super(BombermanEnvAll, self).__init__(all_files=True)
 
 
 class BombermanEnv_15mmite2rhbuendm8atj(BombermanEnv):
