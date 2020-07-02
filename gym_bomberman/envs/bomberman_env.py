@@ -1,47 +1,93 @@
 import os
 import random
 import json
+from collections import OrderedDict
 
+import numpy as np
 import gym
+from gym import error, spaces, utils
+from pathlib import Path
+
+SIZE = 23
+HUMAN = {
+    'A': '☺', 'B': '☻', 'C': 'Ѡ',
+    'D': '♥', 'E': '♠', 'F': '♣',
+    'G': '5', 'H': '4', 'I': '3', 'J': '2', 'K': '1', 'L': '҉',
+    'M': '☼', 'N': '#', 'O': 'H',
+    'P': '&', 'Q': 'x',
+    'R': '+', 'S': 'c', 'T': 'r', 'U': 'i',
+    'V': ' '
+}
+
+ACT="ACT"
+TO_DIRECTION = {0: "", 1: "UP", 2: "DOWN", 3: "LEFT", 4: "RIGHT"}
+FROM_DIRECTION = {"": 0, "UP": 1, "DOWN": 2, "LEFT": 3, "RIGHT": 4}
 
 
 class BombermanEnv(gym.Env):
     metadata = {'render.modes': ['human']}
     data_files = {}
     all_files_index = None
+    data = None
+    player = None
+    dict_data = None
 
     def __init__(self, filename=None, all_files=False):
         self._init_data_files()
         filename = self._first_file(filename, all_files)
-        self.data = open(filename)
-        self.observation_space = gym.spaces.Dict({"position": gym.spaces.Discrete(2), "velocity": gym.spaces.Discrete(3)})
+        self._open(filename)
+        self.observation_space = spaces.Dict({
+            'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
+            'bomberman': spaces.Tuple((spaces.Discrete(SIZE-1), spaces.Discrete(SIZE-1))),
+            'bombs': spaces.Discrete(6),
+            'perks': spaces.MultiDiscrete([100, 100, 100])
+        })
+        self.action_space = spaces.MultiDiscrete([2, 5, 2])
 
     def step(self, action):
-        dict_data = self._next()
-        if dict_data is None:
+        self._from_action(action)
+
+        self.dict_data = self._next()
+        if self.dict_data is None:
             return None, None, True, None
 
-        if "action" not in dict_data:
-            dict_data["action"] = []
-        return dict_data, dict_data["reward"], dict_data["done"], dict_data["info"]
+        self.dict_data["action"] = self._to_action()
+        return self._to_observation(), self.dict_data["reward"], self.dict_data["done"], self.dict_data
 
     def reset(self):
         while True:
-            dict_data = self._next()
-            if dict_data is None:
+            self.dict_data = self._next()
+            if self.dict_data is None:
                 return None
-            if not dict_data["done"]:
+            if not self.dict_data["done"]:
                 break
-        return dict_data
+            return None, None, True, None
+
+        self.dict_data["action"] = self._to_action()
+        return self._to_observation()
 
     def render(self, mode='human'):
-        None
+        if self.dict_data is None:
+            return
+
+        for i in range(SIZE):
+            line = ""
+            for j in range(SIZE):
+                ch = self.dict_data["board"][SIZE * i + j]
+                line += HUMAN[ch] + ' '
+            print(line)
+        print()
 
     def close(self):
         self.data.close()
 
     def seed(self, seed=None):
         random.seed(seed)
+
+    def _open(self, filename):
+        self.data = open(filename)
+        self.player = Path(filename).stem
+        print(self.player)
 
     def _init_data_files(self):
         parent_path = os.path.dirname(os.path.abspath(__file__))
@@ -70,7 +116,7 @@ class BombermanEnv(gym.Env):
             self.all_files_index += 1
             self.data.close()
             filename = self._data_files_file(self.all_files_index)
-            self.data = open(filename)
+            self._open(filename)
             return self._next()
         else:
             return None
@@ -86,6 +132,61 @@ class BombermanEnv(gym.Env):
             return json.loads(json_data)
         except json.decoder.JSONDecodeError:
             return self._try_another_file()
+
+    def _to_observation(self):
+        return OrderedDict([
+            ('board', self._board_to_box(self.dict_data["board"])),
+            ('bomberman', self._coordinate_to_tuple(self.dict_data["coordinates"][self.player])),
+            ('bombs', len(self.dict_data["bombs"])),
+            ('perks', np.array([
+                self.dict_data["perks"]["bomb_blast_radius_increase"],
+                self.dict_data["perks"]["bomb_count_increase"],
+                self.dict_data["perks"]["bomb_immune"]
+            ], dtype=np.int64))
+        ])
+
+    def _to_action(self):
+        action = []
+        if "action" in self.dict_data:
+            action = self.dict_data["action"]
+
+        if len(action) == 0:
+            return np.array([0, 0, 0], dtype=np.int64)
+        elif len(action) == 1:
+            if action[0] == ACT:
+                return np.array([1, 0, 0], dtype=np.int64)
+            else:
+                return np.array([0, FROM_DIRECTION[action[0]], 0], dtype=np.int64)
+        elif len(action) == 2:
+            if action[0] == ACT:
+                return np.array([1, FROM_DIRECTION[action[1]], 0], dtype=np.int64)
+            else:
+                return np.array([0, FROM_DIRECTION[action[0]], 1], dtype=np.int64)
+        else:
+            return np.array([1, FROM_DIRECTION[action[1]], 1], dtype=np.int64)
+
+    def _from_action(self, action):
+        lst = []
+        if action[0] == 1:
+            lst.append(ACT)
+        if action[1] != 0:
+            lst.append(TO_DIRECTION[action[1]])
+        if action[2] == 1:
+            lst.append(ACT)
+        return lst
+
+    def _coordinate_to_tuple(self, coordinate):
+        return coordinate["x"], coordinate["y"]
+
+    def _board_to_box(self, board):
+        chars = []
+        for i in range(SIZE):
+            row = []
+            for j in range(SIZE):
+                ch = board[SIZE * i + j]
+                row.append(ord(ch)-ord('A'))
+            chars.append(row)
+        return np.array(chars, dtype=np.uint8)
 
 
 class BombermanEnvAll(BombermanEnv):
