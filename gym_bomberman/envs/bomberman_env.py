@@ -26,23 +26,24 @@ FROM_DIRECTION = {"": 0, "UP": 1, "DOWN": 2, "LEFT": 3, "RIGHT": 4}
 
 class BombermanEnv(gym.Env):
     metadata = {'render.modes': ['human']}
-    data_files = {}
-    all_files_index = None
+    observation_space = spaces.Dict({
+        'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
+        'bombs': spaces.Discrete(6),
+        'perks': spaces.MultiDiscrete([100, 100, 100])
+    })
+    action_space = spaces.MultiDiscrete([2, 5, 2])
+
     data = None
     player = None
     dict_data = None
+
+    data_files = {}
+    all_files_index = None
 
     def __init__(self, filename=None, all_files=False):
         self._init_data_files()
         filename = self._first_file(filename, all_files)
         self._open(filename)
-        self.observation_space = spaces.Dict({
-            'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
-            'bomberman': spaces.Tuple((spaces.Discrete(SIZE-1), spaces.Discrete(SIZE-1))),
-            'bombs': spaces.Discrete(6),
-            'perks': spaces.MultiDiscrete([100, 100, 100])
-        })
-        self.action_space = spaces.MultiDiscrete([2, 5, 2])
 
     def step(self, action):
         self._from_action(action)
@@ -69,14 +70,7 @@ class BombermanEnv(gym.Env):
     def render(self, mode='human'):
         if self.dict_data is None:
             return
-
-        for i in range(SIZE):
-            line = ""
-            for j in range(SIZE):
-                ch = self.dict_data["board"][SIZE * i + j]
-                line += HUMAN[ch] + ' '
-            print(line)
-        print()
+        self._print()
 
     def close(self):
         self.data.close()
@@ -136,7 +130,6 @@ class BombermanEnv(gym.Env):
     def _to_observation(self):
         return OrderedDict([
             ('board', self._board_to_box(self.dict_data["board"])),
-            ('bomberman', self._coordinate_to_tuple(self.dict_data["coordinates"][self.player])),
             ('bombs', len(self.dict_data["bombs"])),
             ('perks', np.array([
                 self.dict_data["perks"]["bomb_blast_radius_increase"],
@@ -187,6 +180,15 @@ class BombermanEnv(gym.Env):
                 row.append(ord(ch)-ord('A'))
             chars.append(row)
         return np.array(chars, dtype=np.uint8)
+
+    def _print(self):
+        for i in range(SIZE):
+            line = ""
+            for j in range(SIZE):
+                ch = self.dict_data["board"][SIZE * i + j]
+                line += HUMAN[ch] + ' '
+            print(line)
+        print()
 
 
 class BombermanEnvAll(BombermanEnv):
