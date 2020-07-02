@@ -1,8 +1,8 @@
-import gym
-from gym import error, spaces, utils
 import os
 import random
 import json
+
+import gym
 
 
 class BombermanEnv(gym.Env):
@@ -14,7 +14,7 @@ class BombermanEnv(gym.Env):
         self._init_data_files()
         filename = self._first_file(filename, all_files)
         self.data = open(filename)
-        self.observation_space = spaces.Dict({"position": spaces.Discrete(2), "velocity": spaces.Discrete(3)})
+        self.observation_space = gym.spaces.Dict({"position": gym.spaces.Discrete(2), "velocity": gym.spaces.Discrete(3)})
 
     def step(self, action):
         dict_data = self._next()
