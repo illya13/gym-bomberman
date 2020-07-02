@@ -86,22 +86,18 @@ while True:
     if obs is None:
         break
 
-    action = env.action_space.sample()
     while True:
         os.system('cls')
 
         env.render()
 
         print(obs)
-        print()
-        print(action)
         time.sleep(0.05)
 
+        action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         if done:
             break
-
-        action = info["action"]
 
 env.close()
 ```
