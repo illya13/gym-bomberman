@@ -76,8 +76,8 @@ env = gym.make('gym_bomberman:Bomberman-15mmite2rhbuendm8atj-v0')
 # Full `replay` example
 ```python
 import gym
-import os
 import time
+import numpy as np
 
 env = gym.make('gym_bomberman:Bomberman-v0')
 
@@ -86,18 +86,19 @@ while True:
     if obs is None:
         break
 
+    action = np.array([0, 0, 0])
     while True:
-        os.system('cls')
-
+        print()
         env.render()
-
-        print(obs)
-        time.sleep(0.05)
+        print(action)
+        print()
+        time.sleep(1)
 
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         if done:
             break
+        action = info["action"]
 
 env.close()
 ```
