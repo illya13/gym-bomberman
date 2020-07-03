@@ -146,17 +146,23 @@ class BombermanEnv(gym.Env):
         if len(action) == 0:
             return np.array([0, 0, 0], dtype=np.int64)
         elif len(action) == 1:
-            if action[0] == ACT:
-                return np.array([1, 0, 0], dtype=np.int64)
-            else:
-                return np.array([0, FROM_DIRECTION[action[0]], 0], dtype=np.int64)
+            return self._to_action_l1(action)
         elif len(action) == 2:
-            if action[0] == ACT:
-                return np.array([1, FROM_DIRECTION[action[1]], 0], dtype=np.int64)
-            else:
-                return np.array([0, FROM_DIRECTION[action[0]], 1], dtype=np.int64)
+            return self._to_action_l2(action)
         else:
             return np.array([1, FROM_DIRECTION[action[1]], 1], dtype=np.int64)
+
+    def _to_action_l1(self, action):
+        if action[0] == ACT:
+            return np.array([1, 0, 0], dtype=np.int64)
+        else:
+            return np.array([0, FROM_DIRECTION[action[0]], 0], dtype=np.int64)
+
+    def _to_action_l2(self, action):
+        if action[0] == ACT:
+            return np.array([1, FROM_DIRECTION[action[1]], 0], dtype=np.int64)
+        else:
+            return np.array([0, FROM_DIRECTION[action[0]], 1], dtype=np.int64)
 
     def _from_action(self, action):
         lst = []
