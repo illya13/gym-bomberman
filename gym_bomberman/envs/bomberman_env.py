@@ -26,21 +26,22 @@ FROM_DIRECTION = {"": 0, "UP": 1, "DOWN": 2, "LEFT": 3, "RIGHT": 4}
 
 class BombermanEnv(gym.Env):
     metadata = {'render.modes': ['human']}
-    observation_space = spaces.Dict({
-        'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
-        'bombs': spaces.Discrete(6),
-        'perks': spaces.MultiDiscrete([100, 100, 100])
-    })
-    action_space = spaces.MultiDiscrete([2, 5, 2])
-
-    data = None
-    player = None
-    dict_data = None
-
-    data_files = {}
-    all_files_index = None
 
     def __init__(self, filename=None, all_files=False):
+        self.data = None
+        self.player = None
+        self.dict_data = None
+
+        self.data_files = {}
+        self.all_files_index = None
+
+        self.observation_space = spaces.Dict({
+            'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
+            'bombs': spaces.Discrete(6),
+            'perks': spaces.MultiDiscrete([100, 100, 100])
+        })
+        self.action_space = spaces.MultiDiscrete([2, 5, 2])
+
         self._init_data_files()
         filename = self._first_file(filename, all_files)
         self._open(filename)
@@ -81,7 +82,6 @@ class BombermanEnv(gym.Env):
     def _open(self, filename):
         self.data = open(filename)
         self.player = Path(filename).stem
-        print(self.player)
 
     def _init_data_files(self):
         parent_path = os.path.dirname(os.path.abspath(__file__))
