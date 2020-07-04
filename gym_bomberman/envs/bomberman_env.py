@@ -63,7 +63,6 @@ class BombermanEnv(gym.Env):
                 continue
             if not self.dict_data["done"]:
                 break
-            return None, None, True, None
 
         self.dict_data["action"] = self._to_action()
         return self._to_observation()
