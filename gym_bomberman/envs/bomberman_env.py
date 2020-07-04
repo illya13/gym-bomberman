@@ -54,6 +54,7 @@ class BombermanEnv(gym.Env):
             return None, None, True, None
 
         self.dict_data["action"] = self._to_action()
+        self.dict_data["player"] = self.player
         return self._to_observation(), self.dict_data["reward"], self.dict_data["done"], self.dict_data
 
     def reset(self):
@@ -65,6 +66,7 @@ class BombermanEnv(gym.Env):
                 break
 
         self.dict_data["action"] = self._to_action()
+        self.dict_data["player"] = self.player
         return self._to_observation()
 
     def render(self, mode='human'):
