@@ -60,7 +60,7 @@ class BombermanEnv(gym.Env):
         while True:
             self.dict_data = self._next()
             if self.dict_data is None:
-                return None
+                continue
             if not self.dict_data["done"]:
                 break
             return None, None, True, None
