@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 import numpy as np
 import gym
-from gym import error, spaces, utils
+from gym import spaces
 from pathlib import Path
 
 SIZE = 23
@@ -19,9 +19,49 @@ HUMAN = {
     'V': ' '
 }
 
-ACT="ACT"
+ACT = "ACT"
 TO_DIRECTION = {0: "", 1: "UP", 2: "DOWN", 3: "LEFT", 4: "RIGHT"}
 FROM_DIRECTION = {"": 0, "UP": 1, "DOWN": 2, "LEFT": 3, "RIGHT": 4}
+
+
+def _coordinate_to_tuple(coordinate):
+    return coordinate["x"], coordinate["y"]
+
+
+def _to_action_l1(action):
+    if action[0] == ACT:
+        return np.array([1, 0, 0], dtype=np.int64)
+    else:
+        return np.array([0, FROM_DIRECTION[action[0]], 0], dtype=np.int64)
+
+
+def _to_action_l2(action):
+    if action[0] == ACT:
+        return np.array([1, FROM_DIRECTION[action[1]], 0], dtype=np.int64)
+    else:
+        return np.array([0, FROM_DIRECTION[action[0]], 1], dtype=np.int64)
+
+
+def _from_action(action):
+    lst = []
+    if action[0] == 1:
+        lst.append(ACT)
+    if action[1] != 0:
+        lst.append(TO_DIRECTION[action[1]])
+    if action[2] == 1:
+        lst.append(ACT)
+    return lst
+
+
+def _board_to_box(board):
+    chars = []
+    for i in range(SIZE):
+        row = []
+        for j in range(SIZE):
+            ch = board[SIZE * i + j]
+            row.append(ord(ch)-ord('A'))
+        chars.append(row)
+    return np.array(chars, dtype=np.uint8)
 
 
 class BombermanEnv(gym.Env):
@@ -47,7 +87,7 @@ class BombermanEnv(gym.Env):
         self._open(filename)
 
     def step(self, action):
-        self._from_action(action)
+        _from_action(action)
 
         self.dict_data = self._next()
         if self.dict_data is None:
@@ -130,7 +170,7 @@ class BombermanEnv(gym.Env):
 
     def _to_observation(self):
         return OrderedDict([
-            ('board', self._board_to_box(self.dict_data["board"])),
+            ('board', _board_to_box(self.dict_data["board"])),
             ('bombs', len(self.dict_data["bombs"])),
             ('perks', np.array([
                 self.dict_data["perks"]["bomb_blast_radius_increase"],
@@ -147,46 +187,11 @@ class BombermanEnv(gym.Env):
         if len(action) == 0:
             return np.array([0, 0, 0], dtype=np.int64)
         elif len(action) == 1:
-            return self._to_action_l1(action)
+            return _to_action_l1(action)
         elif len(action) == 2:
-            return self._to_action_l2(action)
+            return _to_action_l2(action)
         else:
             return np.array([1, FROM_DIRECTION[action[1]], 1], dtype=np.int64)
-
-    def _to_action_l1(self, action):
-        if action[0] == ACT:
-            return np.array([1, 0, 0], dtype=np.int64)
-        else:
-            return np.array([0, FROM_DIRECTION[action[0]], 0], dtype=np.int64)
-
-    def _to_action_l2(self, action):
-        if action[0] == ACT:
-            return np.array([1, FROM_DIRECTION[action[1]], 0], dtype=np.int64)
-        else:
-            return np.array([0, FROM_DIRECTION[action[0]], 1], dtype=np.int64)
-
-    def _from_action(self, action):
-        lst = []
-        if action[0] == 1:
-            lst.append(ACT)
-        if action[1] != 0:
-            lst.append(TO_DIRECTION[action[1]])
-        if action[2] == 1:
-            lst.append(ACT)
-        return lst
-
-    def _coordinate_to_tuple(self, coordinate):
-        return coordinate["x"], coordinate["y"]
-
-    def _board_to_box(self, board):
-        chars = []
-        for i in range(SIZE):
-            row = []
-            for j in range(SIZE):
-                ch = board[SIZE * i + j]
-                row.append(ord(ch)-ord('A'))
-            chars.append(row)
-        return np.array(chars, dtype=np.uint8)
 
     def _print(self):
         for i in range(SIZE):
