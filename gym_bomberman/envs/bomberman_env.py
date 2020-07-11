@@ -66,6 +66,12 @@ def _board_to_box(board):
 
 class BombermanEnv(gym.Env):
     metadata = {'render.modes': ['human']}
+    observation_space = spaces.Dict({
+        'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
+        'bombs': spaces.Discrete(6),
+        'perks': spaces.MultiDiscrete([100, 100, 100])
+    })
+    action_space = spaces.MultiDiscrete([2, 5, 2])
 
     def __init__(self, filename=None, all_files=False):
         self.data = None
@@ -74,13 +80,6 @@ class BombermanEnv(gym.Env):
 
         self.data_files = {}
         self.all_files_index = None
-
-        self.observation_space = spaces.Dict({
-            'board': spaces.Box(low=0, high=ord('V')-ord('A'), shape=(SIZE, SIZE), dtype=np.uint8),
-            'bombs': spaces.Discrete(6),
-            'perks': spaces.MultiDiscrete([100, 100, 100])
-        })
-        self.action_space = spaces.MultiDiscrete([2, 5, 2])
 
         self._init_data_files()
         filename = self._first_file(filename, all_files)
